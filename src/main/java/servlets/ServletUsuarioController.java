@@ -37,6 +37,9 @@ public class ServletUsuarioController extends HttpServlet {
 			 
 			 daoUsuarioRepository.deletarUser(idUser);
 			 
+			 List<ModelLogin> modelLogins = daoUsuarioRepository.consultaUsuarioList();
+			 request.setAttribute("modelLogins", modelLogins);
+			 
 			 request.setAttribute("msg", "Excluido com sucesso!");
 			 
 			 request.getRequestDispatcher("principal/usuario.jsp").forward(request, response);/*Se for Delete normal sem ajax continua fluxo e redireciona*/
@@ -75,12 +78,26 @@ public class ServletUsuarioController extends HttpServlet {
 			 
 			 	ModelLogin modelLogin = daoUsuarioRepository.consultaUsuarioID(id);
 			 
+			 	List<ModelLogin> modelLogins = daoUsuarioRepository.consultaUsuarioList();
+			 	request.setAttribute("modelLogins", modelLogins);
+			 	
 				request.setAttribute("msg", "Usuário em edição");
 				request.setAttribute("modolLogin", modelLogin);
 				request.getRequestDispatcher("principal/usuario.jsp").forward(request, response);
 		 }
 		 
+		 else if (acao != null && !acao.isEmpty() && acao.equalsIgnoreCase("listarUser")) {
+			 
+			 List<ModelLogin> modelLogins = daoUsuarioRepository.consultaUsuarioList();
+			 
+			 request.setAttribute("msg", "Usuários carregados");
+			 request.setAttribute("modelLogins", modelLogins);
+			 request.getRequestDispatcher("principal/usuario.jsp").forward(request, response);
+		 }
+		 
 		 else {
+			 List<ModelLogin> modelLogins = daoUsuarioRepository.consultaUsuarioList();
+			 request.setAttribute("modelLogins", modelLogins);
 			 request.getRequestDispatcher("principal/usuario.jsp").forward(request, response);/*Se não for nenhum dos 2 deletes então Fica em outro senão porque se deixar redirecionamento no ajax ele perde a informação da variavel e é volátil*/
 		 }
 		 
@@ -129,6 +146,8 @@ public class ServletUsuarioController extends HttpServlet {
 		    modelLogin = daoUsuarioRepository.gravarUsuario(modelLogin);
 		}
 		
+		List<ModelLogin> modelLogins = daoUsuarioRepository.consultaUsuarioList();
+	 	request.setAttribute("modelLogins", modelLogins);
 		
 		request.setAttribute("msg", msg);
 		request.setAttribute("modolLogin", modelLogin);

@@ -57,10 +57,37 @@ public class DAOUsuarioRepository {
 	}
 	
 	
+	public List<ModelLogin> consultaUsuarioList() throws Exception {/*retornar uma lista de ModelLogin e recebendo parametro nome*/
+		List<ModelLogin> retorno = new ArrayList<ModelLogin>();/*retorno será uma lista de ModelLogin e aqui instanciamos essa lista, para não ter um nullpointer Excpetion*/
+		
+		String sql = "select * from model_login where useradmin is false";
+		
+		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
+		
+		ResultSet resultado = statement.executeQuery();
+		
+		while (resultado.next()) {/*Enquanto tiver resultado ele vai percorrer as linhas de rsultado do SQL*/
+			ModelLogin modelLogin = new ModelLogin();/*E para cada linha precisamos iniciar um novo objeto para podermos setar os dados e depois colocar na lista*/
+			modelLogin.setEmail(resultado.getString("email"));
+			modelLogin.setId(resultado.getLong("id"));
+			modelLogin.setLogin(resultado.getString("login"));
+			modelLogin.setNome(resultado.getString("nome"));
+//			modelLogin.setSenha(resultado.getString("senha"));Por questão de segurança não precisa carregar a senha
+			
+			retorno.add(modelLogin);/*Adicionando na lista*/
+			
+		}
+		
+		
+		return retorno;
+	}
+	
+	
+	
 	public List<ModelLogin> consultaUsuarioList(String nome) throws Exception {/*retornar uma lista de ModelLogin e recebendo parametro nome*/
 		List<ModelLogin> retorno = new ArrayList<ModelLogin>();/*retorno será uma lista de ModelLogin e aqui instanciamos essa lista, para não ter um nullpointer Excpetion*/
 		
-		String sql = "select * from model_login where upper(nome) like upper (?) ";
+		String sql = "select * from model_login where upper(nome) like upper (?) and useradmin is false ";
 		
 		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
 		
@@ -92,7 +119,7 @@ public class DAOUsuarioRepository {
 		
 		ModelLogin modelLogin = new ModelLogin(); /*Intanciando objeto aqui para eu sempre ter ele para retornar*/
 		
-		String sql = "select * from model_login where upper(login) = upper('"+login+"')";
+		String sql = "select * from model_login where upper(login) = upper('"+login+"') and useradmin is false";
 		
 		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
 		
@@ -115,7 +142,7 @@ public ModelLogin consultaUsuarioID(String id) throws Exception {
 		
 		ModelLogin modelLogin = new ModelLogin(); /*Intanciando objeto aqui para eu sempre ter ele para retornar*/
 		
-		String sql = "select * from model_login where id = ? ";
+		String sql = "select * from model_login where id = ? and useradmin is false";
 		
 		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
 		
@@ -147,7 +174,7 @@ public ModelLogin consultaUsuarioID(String id) throws Exception {
 	}
 	
 	public void deletarUser(String idUser) throws Exception {
-		String sql = "DELETE FROM model_login  WHERE id = ?;";
+		String sql = "DELETE FROM model_login  WHERE id = ? and useradmin is false;";
 		
 		PreparedStatement prepareSql = connection.prepareStatement(sql); /*preparando sql*/
 		
