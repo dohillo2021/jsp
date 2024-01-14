@@ -172,7 +172,7 @@
 
 function verEditar(id) {
 	
-	var urlAction = document.getElementById('formUser').action;
+	var urlAction = document.getElementById('formUser').action;/*Url action é o endereço inteiro do nosso servidor, nosos projeto e da nossa servlet*/
 	
 	window.location.href= urlAction + '?acao=buscarEditar&id='+id;
 }

@@ -19,17 +19,18 @@ public class DAOUsuarioRepository {
 		connection = SingleConnectionBanco.getConnection();
 	}
 	
-	public ModelLogin gravarUsuario(ModelLogin objeto) throws Exception {
+	public ModelLogin gravarUsuario(ModelLogin objeto, Long userLogado) throws Exception {
 		
 		if(objeto.isNovo()) {/*Grava um novo usuário*/
 			
-		String sql = "INSERT INTO model_login(login, senha, nome, email) VALUES (?, ?, ?, ?);";
+		String sql = "INSERT INTO model_login(login, senha, nome, email, usuario_id) VALUES (?, ?, ?, ?, ?);";
 		PreparedStatement preparedSql = connection.prepareStatement(sql);
 		
 		preparedSql.setString(1, objeto.getLogin());
 		preparedSql.setString(2, objeto.getSenha());
 		preparedSql.setString(3, objeto.getNome());
 		preparedSql.setString(4, objeto.getEmail());
+		preparedSql.setLong(5, userLogado);
 		
 		preparedSql.execute(); /*Para executar a instrução sql*/
 		
@@ -51,16 +52,16 @@ public class DAOUsuarioRepository {
 			
 		}
 		
-		return this.consultaUsuario(objeto.getLogin());/*retorna o método consultar, retorna a consulta*/
+		return this.consultaUsuario(objeto.getLogin(), userLogado);/*retorna o método consultar, retorna a consulta*/
 		
 		
 	}
 	
 	
-	public List<ModelLogin> consultaUsuarioList() throws Exception {/*retornar uma lista de ModelLogin e recebendo parametro nome*/
+	public List<ModelLogin> consultaUsuarioList(Long userLogado) throws Exception {/*retornar uma lista de ModelLogin e recebendo parametro nome*/
 		List<ModelLogin> retorno = new ArrayList<ModelLogin>();/*retorno será uma lista de ModelLogin e aqui instanciamos essa lista, para não ter um nullpointer Excpetion*/
 		
-		String sql = "select * from model_login where useradmin is false";
+		String sql = "select * from model_login where useradmin is false and usuario_id = " + userLogado;
 		
 		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
 		
@@ -75,23 +76,19 @@ public class DAOUsuarioRepository {
 //			modelLogin.setSenha(resultado.getString("senha"));Por questão de segurança não precisa carregar a senha
 			
 			retorno.add(modelLogin);/*Adicionando na lista*/
-			
 		}
-		
-		
 		return retorno;
 	}
 	
-	
-	
-	public List<ModelLogin> consultaUsuarioList(String nome) throws Exception {/*retornar uma lista de ModelLogin e recebendo parametro nome*/
+	public List<ModelLogin> consultaUsuarioList(String nome, Long userLogado) throws Exception {/*retornar uma lista de ModelLogin e recebendo parametro nome*/
 		List<ModelLogin> retorno = new ArrayList<ModelLogin>();/*retorno será uma lista de ModelLogin e aqui instanciamos essa lista, para não ter um nullpointer Excpetion*/
 		
-		String sql = "select * from model_login where upper(nome) like upper (?) and useradmin is false ";
+		String sql = "select * from model_login where upper(nome) like upper (?) and useradmin is false and usuario_id = ? ";
 		
 		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
 		
 		statement.setString(1, "%" + nome + "%");
+		statement.setLong(2, userLogado);
 		
 		ResultSet resultado = statement.executeQuery();
 		
@@ -104,17 +101,34 @@ public class DAOUsuarioRepository {
 //			modelLogin.setSenha(resultado.getString("senha"));Por questão de segurança não precisa carregar a senha
 			
 			retorno.add(modelLogin);/*Adicionando na lista*/
-			
 		}
-		
-		
 		return retorno;
 	}
 	
+	/*Quero consultar também pelo login e se for admin is true antes de logar */
+	public ModelLogin consultaUsuarioLogado(String login) throws Exception {
+		
+		ModelLogin modelLogin = new ModelLogin(); /*Intanciando objeto aqui para eu sempre ter ele para retornar*/
+		
+		String sql = "select * from model_login where upper(login) = upper('"+login+"')";
+		
+		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
+		
+		ResultSet resultado = statement.executeQuery(); /*Executei o sql*/
+		
+		while(resultado.next()) { /*Se tem resultado ele vai entrar logo abaixo e preencher esse objeto e vai retornar.*/
+			modelLogin.setId(resultado.getLong("id"));
+			modelLogin.setNome(resultado.getString("nome"));
+			modelLogin.setEmail(resultado.getString("email"));
+			modelLogin.setLogin(resultado.getString("login"));
+			modelLogin.setSenha(resultado.getString("senha"));
+			
+		}
+		
+		return modelLogin;
+	} 
 	
-	
-	
-	/*Quero consultar também se vou consultar quero retornar o que quero retornar? queor retornar os dados do usuário que está no ModelLogin*/
+	/*Quero consultar também pelo login e se for admin is false */
 	public ModelLogin consultaUsuario(String login) throws Exception {
 		
 		ModelLogin modelLogin = new ModelLogin(); /*Intanciando objeto aqui para eu sempre ter ele para retornar*/
@@ -138,15 +152,14 @@ public class DAOUsuarioRepository {
 	} 
 	
 	
-public ModelLogin consultaUsuarioID(String id) throws Exception {
+	/*Quero consultar também se vou consultar quero retornar o que quero retornar? queor retornar os dados do usuário que está no ModelLogin*/
+	public ModelLogin consultaUsuario(String login, Long userLogado) throws Exception {
 		
 		ModelLogin modelLogin = new ModelLogin(); /*Intanciando objeto aqui para eu sempre ter ele para retornar*/
 		
-		String sql = "select * from model_login where id = ? and useradmin is false";
+		String sql = "select * from model_login where upper(login) = upper('"+login+"') and useradmin is false and usuario_id = " + userLogado;
 		
 		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
-		
-		statement.setLong(1, Long.parseLong(id));
 		
 		ResultSet resultado = statement.executeQuery(); /*Executei o sql*/
 		
@@ -155,6 +168,33 @@ public ModelLogin consultaUsuarioID(String id) throws Exception {
 			modelLogin.setNome(resultado.getString("nome"));
 			modelLogin.setEmail(resultado.getString("email"));
 			modelLogin.setLogin(resultado.getString("login"));
+			modelLogin.setSenha(resultado.getString("senha"));
+			
+		}
+		
+		return modelLogin;
+	} 
+	
+	
+public ModelLogin consultaUsuarioID(String id, Long userLogado) throws Exception {
+		
+		ModelLogin modelLogin = new ModelLogin(); /*Intanciando objeto aqui para eu sempre ter ele para retornar*/
+		
+		String sql = "select * from model_login where id = ? and useradmin is false and usuario_id = ?";
+		
+		PreparedStatement statement = connection.prepareStatement(sql); /*Preparei o sql*/
+		
+		statement.setLong(1, Long.parseLong(id));
+		statement.setLong(2, userLogado);
+		
+		ResultSet resultado = statement.executeQuery(); /*Executei o sql*/
+		
+		while(resultado.next()) { /*Se tem resultado ele vai entrar logo abaixo e preencher esse objeto e vai retornar.*/
+			modelLogin.setId(resultado.getLong("id"));
+			modelLogin.setNome(resultado.getString("nome"));
+			modelLogin.setEmail(resultado.getString("email"));
+			modelLogin.setLogin(resultado.getString("login"));
+			modelLogin.setSenha(resultado.getString("senha"));
 			modelLogin.setSenha(resultado.getString("senha"));
 			
 		}
